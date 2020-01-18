@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html><head>
+  <meta http-equiv="content-type" content="text/html; charset=UTF-8">
+  <title>School Smart Eye</title>
+  <meta http-equiv="content-type" content="text/html; charset=UTF-8">
+  <meta name="robots" content="noindex, nofollow">
+  <meta name="googlebot" content="noindex, nofollow">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+
+  <script type="text/javascript" src="//code.jquery.com/jquery-3.1.0.js"></script>
+
+    <link rel="stylesheet" type="text/css" href="/css/result-light.css">
+
+      <script type="text/javascript" src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js"></script>
+      <link rel="stylesheet" type="text/css" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap-theme.min.css">
+      <link rel="stylesheet" type="text/css" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap.min.css">
+      <script type="text/javascript" src="https://download.affectiva.com/js/3.2.1/affdex.js"></script>
+
+  <style id="compiled-css" type="text/css">
+      
+  </style>
+
+<style>
+  .shadow {
+    height: 520px!important;
+  }
+  .shadow canvas{
+    margin: 10px;
+    border: 1px solid #dfdfdf;
+    -webkit-box-shadow: 0px 0px 10px 0px rgba(50, 50, 50, 0.75);
+-moz-box-shadow:    0px 0px 10px 0px rgba(50, 50, 50, 0.75);
+box-shadow:         0px 0px 10px 0px rgba(50, 50, 50, 0.75);
+border-radius: 10px
+  }
+.status-report {
+  background-color: #dfdfdf;
+  border-radius: 10px;
+  margin: 20px;
+  padding: 30px 20px;
+}
+.button3{display:inline-block;padding:0.3em 1.2em;margin:0 0.3em 0.3em 0;border-radius:2em;box-sizing: border-box;text-decoration:none;font-family:'Roboto',sans-serif;font-weight:300;color:#FFFFFF;background-color:#4eb5f1;text-align:center;transition: all 0.2s;
+}
+.button3:hover{background-color:green;}
+</style>
+  
+</head>
+<body>
+  <div class="container-fluid">
+    <div class="row">
+      <div class="col-md-12">
+        <h4 style="margin: 0;height: 70px;padding: 0;overflow: hidden;">
+        <img src="logo.png" style="text-align: left; width: 140px;position: relative; top: -8px">
+        <button style="float: right;margin-right: 250px;margin-top: 30px" class="button3" onclick="onStart()">Create a report</button>
+      </h4>
+      </div>
+    </div>
+    <div class="row">
+      <div class="col-md-8 shadow" id="affdex_elements" style="width:700px;height:500px;"></div>
+      <div class="col-md-4">
+        <div class="status-report">
+          <strong>EMOTION TRACKING RESULTS</strong>
+          
+          <div style="word-wrap:break-word;height: 50px"><h1>Emoji: <span id="results2"></span></h1></div>
+          <div style="word-wrap:break-word;height: 100px"><h4>Emotions(levels):<br><span id="results3"></span></h4></div>
+          <div id="results" style="word-wrap:break-word;"></div>
+        </div>
+        <div style="display: none;">
+          <strong>DETECTOR LOG MSGS</strong>
+        </div>
+        <div id="logs" style="display: none"></div>
+
+      </div>
+    </div>
+    <div>
+      <button id="start" class="button3" onclick="onStart()">Start</button>
+      <button id="stop" class="button3" onclick="onStop()">Stop</button>
+      <button id="reset" class="button3" onclick="onReset()">Reset</button>
+      
+      
+    </div>
+  </div>
+
+
+
+  <!-- TODO: Missing CoffeeScript 2 -->
+
+  <script type="text/javascript">
+//<![CDATA[
+
+     // SDK Needs to create video and canvas nodes in the DOM in order to function
+      // Here we are adding those nodes a predefined div.
+      var divRoot = $("#affdex_elements")[0];
+      var width = 640;
+      var height = 480;
+      var faceMode = affdex.FaceDetectorMode.LARGE_FACES;
+      //Construct a CameraDetector and specify the image width / height and face detector mode.
+      var detector = new affdex.CameraDetector(divRoot, width, height, faceMode);
+
+      //Enable detection of all Expressions, Emotions and Emojis classifiers.
+      detector.detectAllEmotions();
+      detector.detectAllExpressions();
+      detector.detectAllEmojis();
+      detector.detectAllAppearance();
+
+      //Add a callback to notify when the detector is initialized and ready for runing.
+      detector.addEventListener("onInitializeSuccess", function() {
+        log('#logs', "The detector reports initialized");
+        //Display canvas instead of video feed because we want to draw the feature points on it
+        $("#face_video_canvas").css("display", "block");
+        $("#face_video").css("display", "none");
+      });
+
+      function log(node_name, msg) {
+        $(node_name).append("<span>" + msg + "</span><br />")
+      }
+
+      //function executes when Start button is pushed.
+      function onStart() {
+        if (detector && !detector.isRunning) {
+          $("#logs").html("");
+          detector.start();
+        }
+        log('#logs', "Clicked the start button");
+      }
+
+      //function executes when the Stop button is pushed.
+      function onStop() {
+        log('#logs', "Clicked the stop button");
+        if (detector && detector.isRunning) {
+          detector.removeEventListener();
+          detector.stop();
+        }
+      };
+
+      //function executes when the Reset button is pushed.
+      function onReset() {
+        log('#logs', "Clicked the reset button");
+        if (detector && detector.isRunning) {
+          detector.reset();
+
+          $('#results').html("");
+        }
+      };
+
+      //Add a callback to notify when camera access is allowed
+      detector.addEventListener("onWebcamConnectSuccess", function() {
+        log('#logs', "Webcam access allowed");
+      });
+
+      //Add a callback to notify when camera access is denied
+      detector.addEventListener("onWebcamConnectFailure", function() {
+        log('#logs', "webcam denied");
+        console.log("Webcam access denied");
+      });
+
+      //Add a callback to notify when detector is stopped
+      detector.addEventListener("onStopSuccess", function() {
+        log('#logs', "The detector reports stopped");
+        $("#results").html("");
+      });
+
+      //Add a callback to receive the results from processing an image.
+      //The faces object contains the list of the faces detected in an image.
+      //Faces object contains probabilities for all the different expressions, emotions and appearance metrics
+      detector.addEventListener("onImageResultsSuccess", function(faces, image, timestamp) {
+        $('#results').html("");
+        $('#results2').html("");
+        $('#results3').html("");
+
+        log('#results', "Timestamp: " + timestamp.toFixed(2));
+        log('#results', "Number of faces found: " + faces.length);
+        if (faces.length > 0) {
+          log('#results2', faces[0].emojis.dominantEmoji);
+          log('#results', "Appearance: " + JSON.stringify(faces[0].appearance));
+          log('#results3', JSON.stringify(faces[0].emotions, function(key, val) {
+            return val.toFixed ? Number(val.toFixed(0)) : val;
+          }));
+          log('#results', "Expressions: " + JSON.stringify(faces[0].expressions, function(key, val) {
+            return val.toFixed ? Number(val.toFixed(0)) : val;
+          }));
+          
+          if($('#face_video_canvas')[0] != null)
+            drawFeaturePoints(image, faces[0].featurePoints);
+        }
+      });
+
+      //Draw the detected facial feature points on the image
+      function drawFeaturePoints(img, featurePoints) {
+        var contxt = $('#face_video_canvas')[0].getContext('2d');
+
+        var hRatio = contxt.canvas.width / img.width;
+        var vRatio = contxt.canvas.height / img.height;
+        var ratio = Math.min(hRatio, vRatio);
+
+        contxt.strokeStyle = "#FFFFFF";
+        for (var id in featurePoints) {
+          contxt.beginPath();
+          contxt.arc(featurePoints[id].x,
+            featurePoints[id].y, 2, 0, 2 * Math.PI);
+          contxt.stroke();
+
+        }
+      }
+
+
+
+
+//]]></script>
+
+  <script>
+    // tell the embed parent frame the height of the content
+    if (window.parent && window.parent.parent){
+      window.parent.parent.postMessage(["resultsFrame", {
+        height: document.body.getBoundingClientRect().height,
+        slug: "opyh5e8d"
+      }], "*")
+    }
+
+    // always overwrite window.name, in case users try to set it manually
+    window.name = "result"
+  </script>
+
+
+</body></html>
